@@ -32,7 +32,7 @@ func ConnectDb() {
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
 		os.Getenv("DB_NAME"),
-)
+	)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
