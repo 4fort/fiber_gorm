@@ -2,6 +2,7 @@ package routes
 
 import (
 	"errors"
+	"time"
 
 	"github.com/4fort/fiber_gorm/database"
 	"github.com/4fort/fiber_gorm/models"
@@ -10,13 +11,20 @@ import (
 
 type UserSerializer struct {
 	// not the model User, this is a serializer
-	ID        uint   `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
+	ID        uint      `json:"id"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func CreateResponseUser(user models.User) UserSerializer {
-	return UserSerializer{ID: user.ID, FirstName: user.FirstName, LastName: user.LastName}
+	return UserSerializer{
+		ID:        user.ID,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt}
 }
 
 func CreateUser(c fiber.Ctx) error {
@@ -72,7 +80,13 @@ func GetUser(c fiber.Ctx) error {
 }
 
 func UpdateUser(c fiber.Ctx) error {
+	type UpdateUser struct {
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+	}
+
 	var user models.User
+	var updatedData UpdateUser
 
 	if err := findUser(&user, c); err != nil {
 		return c.Status(404).JSON(fiber.Map{
@@ -80,21 +94,17 @@ func UpdateUser(c fiber.Ctx) error {
 		})
 	}
 
-	type UpdateUser struct {
-		FirstName string `json:"first_name"`
-		LastName  string `json:"last_name"`
-	}
-
-	var updateData UpdateUser
-
-	if err := c.Bind().Body(&updateData); err != nil {
+	if err := c.Bind().Body(&updatedData); err != nil {
 		return c.Status(500).JSON(err.Error())
 	}
 
-	user.FirstName = updateData.FirstName
-	user.LastName = updateData.LastName
+	user.FirstName = updatedData.FirstName
+	user.LastName = updatedData.LastName
 
-	database.Database.Db.Save(&user)
+	// database.Database.Db.Save(&user)
+	if err := database.Database.Db.Model(&user).Updates(&user).Error; err != nil {
+		return c.Status(500).JSON(err.Error())
+	}
 
 	responseUser := CreateResponseUser(user)
 	return c.Status(200).JSON(responseUser)
