@@ -15,14 +15,16 @@ func welcome(c fiber.Ctx) error {
 
 func setupRoutes(app *fiber.App) {
 	api := app.Group("/api")
-	
+
 	// welcome endpoint
-	api.Get("/", func(c fiber.Ctx) error {
-		return c.SendString("Hello, World! OTINLKAHGDJKHAGWSDKLJJGH")
-	})
+	api.Get("/", welcome)
 
 	// user endpoint
 	api.Post("/users", routes.CreateUser)
+	api.Get("/users", routes.GetUsers)
+	api.Get("/users/:id", routes.GetUser)
+	api.Put("/users/:id", routes.UpdateUser)
+	api.Delete("/users/:id", routes.DeleteUser)
 }
 
 func main() {
@@ -30,7 +32,7 @@ func main() {
 	app := fiber.New()
 
 	app.Use(logger.New(logger.Config{
-    Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
+		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
 	}))
 
 	setupRoutes(app)
