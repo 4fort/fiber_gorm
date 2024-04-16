@@ -20,7 +20,10 @@ var Database DbInstance
 
 func init() {
 	if err := godotenv.Load(); err != nil {
-		log.Print("No .env file found")
+		log.Fatal("No .env file found")
+	}
+	if os.Getenv("DB_NAME") == "" {
+		log.Fatal("DB_NAME not found in .env file. Please provide one")
 	}
 }
 
